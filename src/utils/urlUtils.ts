@@ -18,7 +18,8 @@ export function getAppBasePath(): string {
     if (segments.length > 0) {
       // If the first segment is not "kategori" and not a year
       const first = segments[0];
-      if (first !== 'kategori' && !/^\d{4}$/.test(first)) {
+      const reservedRoutes = ['kategori', 'tulis', 'write', 'editor', 'admin'];
+      if (!reservedRoutes.includes(first) && !/^\d{4}$/.test(first)) {
         return `/${first}`;
       }
     }

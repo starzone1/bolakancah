@@ -11,6 +11,7 @@ interface WriterWorkspaceProps {
   isAdminLoggedIn: boolean;
   onLoginSuccess: () => void;
   onGoToPortal: () => void;
+  onOpenAdminPanel?: () => void;
 }
 
 export const WriterWorkspace: React.FC<WriterWorkspaceProps> = ({
@@ -22,6 +23,7 @@ export const WriterWorkspace: React.FC<WriterWorkspaceProps> = ({
   isAdminLoggedIn,
   onLoginSuccess,
   onGoToPortal,
+  onOpenAdminPanel,
 }) => {
   // Form state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -356,6 +358,17 @@ export const WriterWorkspace: React.FC<WriterWorkspaceProps> = ({
             <i className="fas fa-globe" />
             <span>Lihat Portal Publik</span>
           </button>
+
+          {onOpenAdminPanel && (
+            <button
+              onClick={onOpenAdminPanel}
+              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 rounded-xl text-xs font-black text-black transition-all flex items-center gap-1.5 shadow-md shadow-amber-500/10"
+              title="Kelola Prediksi Skor Harian (Tambah/Edit/Hapus/Impor Massal)"
+            >
+              <i className="fas fa-futbol" />
+              <span>Kelola Prediksi Skor</span>
+            </button>
+          )}
           
           <button
             onClick={resetForm}

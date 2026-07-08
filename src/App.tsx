@@ -82,6 +82,7 @@ export default function App() {
   });
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [adminPanelDefaultTab, setAdminPanelDefaultTab] = useState<'create' | 'manage' | 'fixtures' | 'stats'>('create');
 
   // currentView can be 'reader' or 'writer'
   const [currentView, setCurrentView] = useState<'reader' | 'writer'>(() => {
@@ -243,11 +244,16 @@ export default function App() {
       const pathname = window.location.pathname;
 
       // 1. Check for write/editor route
+      const base = getAppBasePath();
+      let relativePath = pathname;
+      if (base && pathname.startsWith(base)) {
+        relativePath = pathname.substring(base.length);
+      }
+      const pathSegments = relativePath.split('/').filter(Boolean);
+      const isWriterRoute = pathSegments.length > 0 && ['tulis', 'write', 'editor', 'admin'].includes(pathSegments[0]);
+
       if (
-        pathname.includes('/tulis') || 
-        pathname.includes('/write') || 
-        pathname.includes('/editor') || 
-        pathname.includes('/admin') ||
+        isWriterRoute ||
         searchParams.get('mode') === 'tulis' ||
         searchParams.get('write') === 'true'
       ) {
@@ -386,6 +392,7 @@ export default function App() {
         onDeleteFixture={handleDeleteFixture}
         onLogout={handleAdminLogout}
         categories={categoryNames}
+        defaultTab={adminPanelDefaultTab}
       />
 
       {/* Search Overlay */}
@@ -433,6 +440,10 @@ export default function App() {
             isAdminLoggedIn={isAdminLoggedIn}
             onLoginSuccess={handleAdminLoginSuccess}
             onGoToPortal={handleGoHome}
+            onOpenAdminPanel={() => {
+              setAdminPanelDefaultTab('fixtures');
+              setIsAdminPanelOpen(true);
+            }}
           />
         ) : (
           <div className="main-wrap">

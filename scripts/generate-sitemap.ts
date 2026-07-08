@@ -41,9 +41,24 @@ function parseFirestoreArticle(doc: FirestoreArticleDoc) {
 }
 
 async function fetchFirestoreArticles(): Promise<any[]> {
-  const projectId = 'gen-lang-client-0169314778';
-  const databaseId = 'ai-studio-kancahtotoportal-7859c1bb-6a48-438c-bbe3-87472a290388';
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/articles?pageSize=100`;
+  let projectId = 'gen-lang-client-0169314778';
+  let databaseId = 'ai-studio-kancahtotoportal-7859c1bb-6a48-438c-bbe3-87472a290388';
+  let apiKey = '';
+
+  try {
+    const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (config.projectId) projectId = config.projectId;
+      if (config.firestoreDatabaseId) databaseId = config.firestoreDatabaseId;
+      if (config.apiKey) apiKey = config.apiKey;
+    }
+  } catch (err) {
+    // Squelch configuration load errors
+  }
+
+  const queryParams = apiKey ? `?pageSize=100&key=${apiKey}` : '?pageSize=100';
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${databaseId}/documents/articles${queryParams}`;
 
   try {
     console.log('Fetching articles from Firestore REST API...');
@@ -57,7 +72,7 @@ async function fetchFirestoreArticles(): Promise<any[]> {
       return data.documents.map(parseFirestoreArticle);
     }
   } catch (err) {
-    console.warn('Failed to fetch articles from Firestore REST API, using local mock fallbacks:', err);
+    console.log('Note: Using local mock articles for sitemap generation (Firestore collection is currently empty or unseeded).');
   }
   return [];
 }

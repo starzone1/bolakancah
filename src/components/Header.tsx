@@ -88,20 +88,21 @@ export const Header: React.FC<HeaderProps> = ({
           {isAdminLoggedIn ? (
             <button
               onClick={onOpenAdminPanel}
-              className="px-3 py-1.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-d)] text-white font-extrabold text-[11px] flex items-center gap-1.5 shadow-[0_2px_10px_rgba(0,150,255,0.35)] transition-all"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-d)] text-white font-extrabold text-[11px] flex items-center gap-1 sm:gap-1.5 shadow-[0_2px_10px_rgba(0,150,255,0.35)] transition-all"
               title="Buka Panel Admin Kancahtoto"
             >
               <i className="fas fa-edit" />
-              <span>Panel Admin</span>
+              <span className="hidden min-[400px]:inline">Panel Admin</span>
+              <span className="min-[400px]:hidden">Admin</span>
             </button>
           ) : (
             <button
               onClick={onOpenAdminLogin}
-              className="px-3 py-1.5 rounded-lg bg-[var(--card)] hover:bg-[var(--card-h)] border border-[var(--border)] text-[var(--fg2)] hover:text-white font-bold text-[11px] flex items-center gap-1.5 transition-all"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[var(--card)] hover:bg-[var(--card-h)] border border-[var(--border)] text-[var(--fg2)] hover:text-white font-bold text-[11px] flex items-center gap-1 sm:gap-1.5 transition-all"
               title="Login Admin Redaksi"
             >
               <i className="fas fa-user-shield text-[var(--accent)]" />
-              <span className="hidden sm:inline">Admin</span>
+              <span className="hidden min-[360px]:inline">Admin</span>
             </button>
           )}
 

@@ -198,7 +198,7 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
           <span className="text-[var(--fg3)] font-semibold flex items-center gap-1.5">
             <i className="fas fa-share-alt text-[var(--accent)]" /> Bagikan:
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => handleShare('wa')}
               title="Bagikan ke WhatsApp"
@@ -275,7 +275,7 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
         />
 
         {/* AUTHOR BIO CARD */}
-        <div className="my-8 p-5 sm:p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl relative overflow-hidden group">
+        <div className="my-8 p-4 sm:p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-glow)] rounded-full blur-3xl pointer-events-none opacity-50" />
           
           <div className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--accent-l)] mb-4 flex items-center gap-1.5 font-display">
@@ -329,54 +329,60 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
         </div>
 
         {/* SHARE BUTTONS */}
-        <div className="my-8 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] shadow-md">
-          <div className="text-xs font-bold text-[var(--fg3)] uppercase tracking-wider mb-3 flex items-center gap-2">
-            <i className="fas fa-share-alt text-[var(--accent)] text-sm" /> Bagikan Berita Ini Ke Media Sosial:
+        <div className="my-8 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl">
+          <div className="text-xs font-extrabold text-[var(--fg3)] uppercase tracking-widest mb-3.5 flex items-center gap-2 font-display">
+            <i className="fas fa-share-alt text-[var(--accent)]" /> Bagikan Berita Ini Ke Media Sosial:
           </div>
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2.5">
             <button
               onClick={() => handleShare('wa')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs font-bold transition-all shadow-sm"
+              title="Bagikan ke WhatsApp"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600/15 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/20 text-[11px] sm:text-xs font-bold transition-all shadow-sm"
             >
-              <i className="fab fa-whatsapp text-sm" /> WhatsApp
+              <i className="fab fa-whatsapp text-xs sm:text-sm" /> WA
             </button>
             <button
               onClick={() => handleShare('fb')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/30 text-xs font-bold transition-all shadow-sm"
+              title="Bagikan ke Facebook"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600/15 hover:bg-blue-600 text-blue-400 hover:text-white border border-blue-500/20 text-[11px] sm:text-xs font-bold transition-all shadow-sm"
             >
-              <i className="fab fa-facebook text-sm" /> Facebook
+              <i className="fab fa-facebook text-xs sm:text-sm" /> FB
             </button>
             <button
               onClick={() => handleShare('x')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800/80 hover:bg-black text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition-all shadow-sm"
+              title="Bagikan ke X"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800/80 hover:bg-black text-slate-200 hover:text-white border border-slate-700 text-[11px] sm:text-xs font-bold transition-all shadow-sm"
             >
-              <i className="fab fa-x-twitter text-sm" /> X (Twitter)
+              <i className="fab fa-x-twitter text-xs sm:text-sm" /> X
             </button>
             <button
               onClick={() => handleShare('tg')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-500/20 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/30 text-xs font-bold transition-all shadow-sm"
+              title="Bagikan ke Telegram"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sky-500/15 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/20 text-[11px] sm:text-xs font-bold transition-all shadow-sm"
             >
-              <i className="fab fa-telegram-plane text-sm" /> Telegram
+              <i className="fab fa-telegram-plane text-xs sm:text-sm" /> Telegram
             </button>
             {typeof navigator !== 'undefined' && 'share' in navigator && (
               <button
                 onClick={() => handleShare('native')}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white border border-purple-500/30 text-xs font-bold transition-all shadow-sm"
+                title="Bagikan via Aplikasi Lain"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-purple-600/15 hover:bg-purple-600 text-purple-400 hover:text-white border border-purple-500/20 text-[11px] sm:text-xs font-bold transition-all shadow-sm"
               >
-                <i className="fas fa-share-nodes text-sm" /> Lainnya
+                <i className="fas fa-share-nodes text-xs sm:text-sm" /> Lainnya
               </button>
             )}
             <button
               onClick={() => handleShare('copy')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--bg3)] hover:bg-[var(--accent)] text-[var(--fg)] hover:text-white border border-[var(--border)] text-xs font-bold transition-all shadow-sm"
+              title="Salin Tautan"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--bg3)] hover:bg-[var(--accent)] text-[var(--fg)] hover:text-white border border-[var(--border)] text-[11px] sm:text-xs font-bold transition-all shadow-sm"
             >
-              <i className="fas fa-link text-sm" /> {copied ? 'Tautan Disalin!' : 'Salin Link'}
+              <i className="fas fa-link text-xs sm:text-sm" /> {copied ? 'Disalin' : 'Salin'}
             </button>
           </div>
         </div>
 
         {/* COMMENTS SECTION */}
-        <div className="my-10 p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
+        <div className="my-10 p-4 sm:p-6 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
           <h3 className="text-lg font-bold font-display text-[var(--fg)] mb-6 flex items-center gap-2">
             <i className="far fa-comments text-[var(--accent)]" /> Komentar ({comments.length})
           </h3>

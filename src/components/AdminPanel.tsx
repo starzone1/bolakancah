@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Article, Fixture } from '../types';
 import { slugify } from '../utils/urlUtils';
 
@@ -10,11 +10,12 @@ interface AdminPanelProps {
   onUpdateArticle: (article: Article) => void;
   onDeleteArticle: (id: string) => void;
   fixtures?: Fixture[];
-  onAddFixture?: (fixture: Omit<Fixture, 'id'>) => void;
-  onUpdateFixture?: (fixture: Fixture) => void;
-  onDeleteFixture?: (id: string) => void;
+  onAddFixture?: (fixture: Omit<Fixture, 'id'>) => Promise<void> | void;
+  onUpdateFixture?: (fixture: Fixture) => Promise<void> | void;
+  onDeleteFixture?: (id: string) => Promise<void> | void;
   onLogout: () => void;
   categories: string[];
+  defaultTab?: 'create' | 'manage' | 'fixtures' | 'stats';
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -29,9 +30,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onUpdateFixture,
   onDeleteFixture,
   onLogout,
-  categories
+  categories,
+  defaultTab
 }) => {
   const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'fixtures' | 'stats'>('create');
+
+  useEffect(() => {
+    if (isOpen && defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [isOpen, defaultTab]);
   
   // Fixture Form State
   const [editingFixId, setEditingFixId] = useState<string | null>(null);
@@ -72,6 +80,122 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Bulk prediction import states
+  const [bulkText, setBulkText] = useState('');
+  const [parsedPreview, setParsedPreview] = useState<Omit<Fixture, 'id'>[]>([]);
+  const [isSavingBulk, setIsSavingBulk] = useState(false);
+
+  const handleParseBulkText = () => {
+    if (!bulkText.trim()) {
+      alert('Silakan tempel teks prediksi terlebih dahulu!');
+      return;
+    }
+
+    const lines = bulkText.split('\n').map(l => l.trim()).filter(Boolean);
+    const results: Omit<Fixture, 'id'>[] = [];
+    let currentLeague = 'Piala Dunia 2026'; // fallback default
+    let currentMatchDate = 'Hari Ini'; // fallback default
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Match "VS" or " VS " (case insensitive)
+      const vsRegex = /\s+vs\s+/i;
+      const vsMatch = line.match(vsRegex);
+      if (vsMatch && vsMatch.index !== undefined) {
+        // It's a match line!
+        const homeTeam = line.substring(0, vsMatch.index).trim();
+        const rawRight = line.substring(vsMatch.index + vsMatch[0].length).trim();
+
+        // Normalize colon to have spaces: " : "
+        const normalizedRight = rawRight.replace(/\s*:\s*/g, ' : ');
+        const colonIndex = normalizedRight.indexOf(' : ');
+
+        let awayTeam = rawRight;
+        let prediction = '0 : 0';
+
+        if (colonIndex !== -1) {
+          const leftOfColon = normalizedRight.substring(0, colonIndex).trim();
+          const rightOfColon = normalizedRight.substring(colonIndex + 3).trim();
+
+          // Regex to match a trailing handicap/odds number or fraction, e.g. "0", "1 1/2", "1/4", "1/2"
+          const oddsRegex = /\s+(\d+(?:\s+\d+\/\d+|\/\d+)?)$/;
+          const oddsMatch = leftOfColon.match(oddsRegex);
+
+          if (oddsMatch && oddsMatch.index !== undefined) {
+            const leftOdds = oddsMatch[1];
+            awayTeam = leftOfColon.substring(0, oddsMatch.index).trim();
+            prediction = `${leftOdds} : ${rightOfColon}`;
+          } else {
+            // Fallback if no odds match but colon exists
+            awayTeam = leftOfColon;
+            prediction = `0 : ${rightOfColon}`;
+          }
+        }
+
+        results.push({
+          homeTeam,
+          awayTeam,
+          league: currentLeague,
+          matchDate: currentMatchDate,
+          prediction: prediction,
+          odds: prediction,
+          status: 'Upcoming'
+        });
+      } else {
+        // Not a match line. It's either a matchDate or a League Name.
+        // Let's identify matchDates (e.g. contains numbers/time like "07/08 22:00 WIB" or has "/" and ":")
+        const isDatePattern = /\d{2}\/\d{2}/.test(line) || /\d{2}:\d{2}/.test(line) || /\bWIB\b/i.test(line) || /\bUTC\b/i.test(line);
+        if (isDatePattern) {
+          currentMatchDate = line;
+        } else {
+          // Otherwise, it's a new league title!
+          currentLeague = line;
+        }
+      }
+    }
+
+    if (results.length === 0) {
+      alert('Format teks tidak dikenal atau tidak ada data laga "VS" yang ditemukan.');
+    } else {
+      setParsedPreview(results);
+    }
+  };
+
+  const handleSaveBulkFixtures = async (replaceAll: boolean) => {
+    if (parsedPreview.length === 0) return;
+    setIsSavingBulk(true);
+
+    try {
+      if (replaceAll && fixtures && fixtures.length > 0) {
+        showToast('Sedang menghapus prediksi lama...');
+        // Delete all old fixtures
+        for (const f of fixtures) {
+          if (onDeleteFixture) {
+            await onDeleteFixture(f.id);
+          }
+        }
+      }
+
+      showToast(`Sedang menyimpan ${parsedPreview.length} prediksi baru...`);
+      // Add all new fixtures
+      for (const item of parsedPreview) {
+        if (onAddFixture) {
+          await onAddFixture(item);
+        }
+      }
+
+      showToast('Berhasil meng-update prediksi skor secara otomatis!');
+      setBulkText('');
+      setParsedPreview([]);
+    } catch (err) {
+      console.error(err);
+      alert('Terjadi kesalahan saat meng-update prediksi.');
+    } finally {
+      setIsSavingBulk(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -910,6 +1034,144 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           {/* TAB 3: KELOLA PREDIKSI SKOR (FIXTURES) */}
           {activeTab === 'fixtures' && (
             <div className="space-y-6">
+              {/* BULK COPY-PASTE AUTO IMPORT COMPONENT */}
+              <div className="p-5 rounded-2xl bg-[#12151f] border border-red-500/20 space-y-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-2xl pointer-events-none" />
+                
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    <i className="fas fa-magic text-red-500 animate-pulse" />
+                    <span>Auto-Update Prediksi Skor (Salin & Tempel Teks)</span>
+                  </h4>
+                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 font-mono tracking-wider uppercase">
+                    Fitur Otomatis
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-zinc-400 leading-relaxed font-sans">
+                  Tempel teks jadwal & pasaran harian di bawah ini. Sistem akan otomatis mem-parsing liga, waktu pertandingan, tim kandang/tandang, dan nilai prediksi skor secara instan!
+                </p>
+
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-extrabold text-zinc-300 uppercase tracking-wider">
+                    Tempel Teks Di Sini
+                  </label>
+                  <textarea
+                    rows={6}
+                    value={bulkText}
+                    onChange={(e) => setBulkText(e.target.value)}
+                    placeholder={`Contoh format:
+
+UEFA CHAMPIONS LEAGUE QUALIFIERS
+07/08 22:00 WIB
+Kairat Almaty VS Sutjeska Niksic 0 : 1 1/2
+07/08 23:00 WIB
+Flora Tallinn VS FC Iberia 1999 1/4 : 0
+07/09 00:00 WIB
+FC Maxline Vitebsk [n] VS CS Universitatea Craiova 1/2 : 0`}
+                    className="w-full px-3.5 py-2.5 bg-[#0d0f14] border border-zinc-800 rounded-xl text-xs text-white outline-none focus:border-red-500 transition-all font-mono placeholder:text-zinc-700 leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between font-sans">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBulkText(`UEFA CHAMPIONS LEAGUE QUALIFIERS
+07/08 22:00 WIB
+Kairat Almaty VS Sutjeska Niksic 0 : 1 1/2
+07/08 23:00 WIB
+Flora Tallinn VS FC Iberia 1999 1/4 : 0
+07/09 00:00 WIB
+FC Maxline Vitebsk [n] VS CS Universitatea Craiova 1/2 : 0`);
+                    }}
+                    className="text-[10px] text-zinc-500 hover:text-zinc-300 transition-all font-bold"
+                  >
+                    <i className="fas fa-keyboard mr-1" /> Gunakan Contoh Teks
+                  </button>
+
+                  <div className="flex gap-2">
+                    {parsedPreview.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setParsedPreview([])}
+                        className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold transition-all"
+                      >
+                        Batal
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleParseBulkText}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:brightness-110 text-white text-xs font-extrabold shadow-lg shadow-red-600/20 transition-all flex items-center gap-1.5"
+                    >
+                      <i className="fas fa-wand-magic-sparkles" />
+                      <span>Proses & Preview</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bulk Preview Section */}
+                {parsedPreview.length > 0 && (
+                  <div className="pt-4 border-t border-zinc-800 space-y-4">
+                    <div className="flex items-center justify-between font-sans">
+                      <span className="text-xs font-bold text-red-400 flex items-center gap-1.5">
+                        <i className="fas fa-clipboard-list" />
+                        <span>Pratinjau Hasil Parsing ({parsedPreview.length} Match Terdeteksi)</span>
+                      </span>
+                    </div>
+
+                    <div className="max-h-60 overflow-y-auto border border-zinc-800 rounded-xl bg-[#0d0f14] divide-y divide-zinc-800/60 text-xs">
+                      {parsedPreview.map((item, idx) => (
+                        <div key={idx} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 font-sans">
+                          <div>
+                            <div className="flex items-center gap-1.5 text-[10px] mb-1">
+                              <span className="font-bold text-red-500 uppercase">{item.league}</span>
+                              <span className="text-zinc-500">•</span>
+                              <span className="text-zinc-400">{item.matchDate}</span>
+                            </div>
+                            <div className="font-extrabold text-white text-xs">
+                              {item.homeTeam} <span className="text-zinc-500 font-normal px-1 text-[11px]">VS</span> {item.awayTeam}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-zinc-500">Prediksi:</span>
+                            <span className="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-emerald-400 font-mono font-bold">
+                              {item.prediction}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-[11px] text-amber-300 leading-relaxed font-sans">
+                      💡 <strong>Konfirmasi Penyimpanan:</strong> Anda bisa memilih untuk menimpa seluruh prediksi harian yang lama, atau menambahkan prediksi di atas ke daftar yang sudah ada.
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end font-sans">
+                      <button
+                        type="button"
+                        disabled={isSavingBulk}
+                        onClick={() => handleSaveBulkFixtures(false)}
+                        className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:brightness-110 text-white font-extrabold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <i className="fas fa-folder-plus" />
+                        <span>Tambahkan ke Data Lama</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isSavingBulk}
+                        onClick={() => handleSaveBulkFixtures(true)}
+                        className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white font-extrabold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <i className="fas fa-trash-arrow-up" />
+                        <span>Gantikan Semua Data (Hapus Lama)</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Form Tambah/Edit Prediksi */}
               <form onSubmit={handleFixtureSubmit} className="p-5 rounded-2xl bg-[#12151f] border border-zinc-800 space-y-4">
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
