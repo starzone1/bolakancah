@@ -328,7 +328,7 @@ export const WriterWorkspace: React.FC<WriterWorkspaceProps> = ({
     <div className="max-w-7xl mx-auto px-4 py-6 relative z-10">
       {/* Toast Feedback */}
       {toastMessage && (
-        <div className="fixed top-24 right-6 z-50 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl flex items-center gap-2.5 border border-emerald-400/30 animate-bounce">
+        <div className="fixed top-24 right-6 z-50 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl flex items-center gap-2.5 border border-blue-400/30 animate-bounce">
           <i className="fas fa-check-circle text-sm" />
           <span>{toastMessage}</span>
         </div>

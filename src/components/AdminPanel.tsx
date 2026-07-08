@@ -426,7 +426,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       >
         {/* Toast Notification Alert */}
         {toastMessage && (
-          <div className="absolute top-4 right-4 z-50 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl flex items-center gap-2.5 border border-emerald-400/30 animate-bounce">
+          <div className="absolute top-4 right-4 z-50 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl flex items-center gap-2.5 border border-blue-400/30 animate-bounce">
             <i className="fas fa-check-circle text-sm" />
             <span>{toastMessage}</span>
           </div>
@@ -1433,14 +1433,14 @@ FC Maxline Vitebsk [n] VS CS Universitatea Craiova 1/2 : 0`);
               </div>
 
               {/* Real-Time Database Status Card */}
-              <div className="p-6 rounded-2xl bg-[#12151f] border border-emerald-500/30 space-y-4 shadow-lg">
+              <div className="p-6 rounded-2xl bg-[#12151f] border border-cyan-500/30 space-y-4 shadow-lg">
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
                   <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                    <i className="fas fa-cloud-upload-alt text-emerald-400 text-base" />
+                    <i className="fas fa-cloud-upload-alt text-cyan-400 text-base" />
                     <span>Sistem Cloud Auto-Sync Data Database</span>
                   </h4>
-                  <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="text-xs font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-3 py-1 rounded-full flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
                     <span>● Live Sync Aktif</span>
                   </span>
                 </div>
@@ -1451,7 +1451,7 @@ FC Maxline Vitebsk [n] VS CS Universitatea Craiova 1/2 : 0`);
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="p-3 rounded-xl bg-[#0d0f14] border border-zinc-800 flex items-center gap-2.5 text-xs text-zinc-300">
-                    <i className="fas fa-mobile-alt text-emerald-400 text-sm" />
+                    <i className="fas fa-mobile-alt text-cyan-400 text-sm" />
                     <span>Dukungan Lintas Device (HP & Laptop)</span>
                   </div>
                   <div className="p-3 rounded-xl bg-[#0d0f14] border border-zinc-800 flex items-center gap-2.5 text-xs text-zinc-300">

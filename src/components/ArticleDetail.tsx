@@ -320,7 +320,7 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                   <i className="fas fa-newspaper text-[var(--accent)]" /> 30+ Artikel Ditulis
                 </span>
                 <span className="text-[var(--border)]">•</span>
-                <span className="flex items-center gap-1 font-semibold text-emerald-400">
+                <span className="flex items-center gap-1 font-semibold text-cyan-400">
                   <i className="fas fa-shield-alt" /> Terverifikasi KANCAHTOTO
                 </span>
               </div>

@@ -14,6 +14,9 @@ service cloud.firestore {
     match /comments/{commentId} {
       allow read, write: if true;
     }
+    match /metadata/{metadataId} {
+      allow read, write: if true;
+    }
   }
 }
 

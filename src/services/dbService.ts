@@ -5,7 +5,8 @@ import {
   setDoc, 
   deleteDoc, 
   getDocs,
-  addDoc 
+  addDoc,
+  getDoc
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Article, Fixture, ArticleComment } from '../types';
@@ -17,8 +18,17 @@ const FIXTURES_COLLECTION = 'fixtures';
 /**
  * Seed initial articles into Firestore if collection is empty
  */
+const METADATA_COLLECTION = 'metadata';
+const CONFIG_DOC = 'config';
+
 export const seedInitialArticlesIfEmpty = async (initialArticles: Article[]) => {
   try {
+    const configRef = doc(db, METADATA_COLLECTION, CONFIG_DOC);
+    const configSnap = await getDoc(configRef);
+    if (configSnap.exists() && configSnap.data()?.articlesSeeded) {
+      return;
+    }
+
     const colRef = collection(db, ARTICLES_COLLECTION);
     const snap = await getDocs(colRef);
     if (snap.empty) {
@@ -39,6 +49,7 @@ export const seedInitialArticlesIfEmpty = async (initialArticles: Article[]) => 
         });
       }
     }
+    await setDoc(configRef, { articlesSeeded: true }, { merge: true });
   } catch (err) {
     console.error('Failed to seed initial articles:', err);
   }
@@ -49,6 +60,12 @@ export const seedInitialArticlesIfEmpty = async (initialArticles: Article[]) => 
  */
 export const seedInitialFixturesIfEmpty = async (initialFixtures: Fixture[]) => {
   try {
+    const configRef = doc(db, METADATA_COLLECTION, CONFIG_DOC);
+    const configSnap = await getDoc(configRef);
+    if (configSnap.exists() && configSnap.data()?.fixturesSeeded) {
+      return;
+    }
+
     const colRef = collection(db, FIXTURES_COLLECTION);
     const snap = await getDocs(colRef);
     if (snap.empty) {
@@ -69,6 +86,7 @@ export const seedInitialFixturesIfEmpty = async (initialFixtures: Fixture[]) => 
         });
       }
     }
+    await setDoc(configRef, { fixturesSeeded: true }, { merge: true });
   } catch (err) {
     console.error('Failed to seed initial fixtures:', err);
   }
@@ -87,9 +105,7 @@ export const subscribeArticles = (
     colRef,
     (snapshot) => {
       if (snapshot.empty) {
-        // First-time initialization if Firestore collection is empty
-        seedInitialArticlesIfEmpty(mockArticles);
-        onSuccess(mockArticles);
+        onSuccess([]);
       } else {
         const articles: Article[] = snapshot.docs.map((docSnap) => {
           const data = docSnap.data();
@@ -187,8 +203,7 @@ export const subscribeFixtures = (
     colRef,
     (snapshot) => {
       if (snapshot.empty) {
-        seedInitialFixturesIfEmpty(mockFixtures);
-        onSuccess(mockFixtures);
+        onSuccess([]);
       } else {
         const fixtures: Fixture[] = snapshot.docs.map((docSnap) => {
           const data = docSnap.data();

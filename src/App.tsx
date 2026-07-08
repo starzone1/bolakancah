@@ -449,6 +449,54 @@ export default function App() {
           <div className="main-wrap">
             {/* CONTENT COLUMN */}
             <div className="content-col">
+              {/* RUNNING TEXT / TICKER PREDIKSI SKOR HARIAN (Persistent on all pages, highly readable, unified single-color style) */}
+              {fixtures && fixtures.length > 0 && (
+                <div className="w-full bg-[var(--card)] border border-[var(--border)] rounded-2xl p-3 mb-6 overflow-hidden flex items-center gap-3 shadow-lg shadow-black/10 select-none">
+                  <div className="flex items-center gap-1.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 px-2 py-1.5 rounded-lg shrink-0">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400"></span>
+                    </span>
+                    <i className="fas fa-bullhorn text-xs animate-bounce" />
+                  </div>
+                  <div className="w-full overflow-hidden flex items-center">
+                    <marquee 
+                      scrollamount="4" 
+                      onMouseOver={(e) => (e.currentTarget as any).stop()} 
+                      onMouseOut={(e) => (e.currentTarget as any).start()}
+                      className="text-cyan-400 text-xs font-black uppercase tracking-wider"
+                    >
+                      <span className="inline-flex items-center gap-10 whitespace-nowrap">
+                        {fixtures.map((fix, index) => (
+                          <span key={fix.id || index} className="inline-flex items-center gap-2 text-cyan-400 text-xs font-black">
+                            <span className="text-[9px] font-black text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 rounded uppercase font-mono tracking-widest">
+                              {fix.league}
+                            </span>
+                            <span>
+                              {fix.homeTeam} {fix.homeScore !== undefined && fix.homeScore !== null ? fix.homeScore : ''} - {fix.awayScore !== undefined && fix.awayScore !== null ? fix.awayScore : ''} {fix.awayTeam}
+                            </span>
+                            <span className="opacity-40">|</span>
+                            <span className="flex items-center gap-1 font-black">
+                              <i className="fas fa-magic text-[10px]" /> PREDIKSI: {fix.prediction}
+                            </span>
+                            {fix.odds && (
+                              <>
+                                <span className="opacity-40">•</span>
+                                <span className="font-black">ODDS: {fix.odds}</span>
+                              </>
+                            )}
+                            <span className="text-[10px] opacity-75 font-mono">({fix.matchDate})</span>
+                            {index < fixtures.length - 1 && (
+                              <span className="ml-6 font-bold opacity-50">★★★</span>
+                            )}
+                          </span>
+                        ))}
+                      </span>
+                    </marquee>
+                  </div>
+                </div>
+              )}
+
               <LayoutGroup id="page-route-transitions">
                 <AnimatePresence mode="wait">
                   {selectedArticle ? (
@@ -501,7 +549,11 @@ export default function App() {
                       )}
 
                       {/* AI MATCH PREDICTOR WIDGET (Hero feature on home) */}
-                      {!activeCategory && <MatchPredictorWidget />}
+                      {!activeCategory && (
+                        <>
+                          <MatchPredictorWidget />
+                        </>
+                      )}
 
                       {isArticlesLoading ? (
                         <ArticleGridSkeleton count={displayCount} />
