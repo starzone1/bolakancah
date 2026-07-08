@@ -1,5 +1,31 @@
 import { Article } from '../types';
 
+export function getAppBasePath(): string {
+  const path = window.location.pathname;
+  // If it contains /kategori/, find the index of /kategori/
+  const katIndex = path.indexOf('/kategori/');
+  if (katIndex > 0) {
+    return path.substring(0, katIndex);
+  }
+  // If it contains /2026/ or similar 4-digit year pattern
+  const yearMatch = path.match(/\/\d{4}\/\d{2}\//);
+  if (yearMatch && yearMatch.index && yearMatch.index > 0) {
+    return path.substring(0, yearMatch.index);
+  }
+  // If it is just a subfolder like /bolakancah/ or /bolakancah
+  if (path !== '/' && !path.startsWith('/kategori/') && !path.match(/^\/\d{4}\/\d{2}\//)) {
+    const segments = path.split('/').filter(Boolean);
+    if (segments.length > 0) {
+      // If the first segment is not "kategori" and not a year
+      const first = segments[0];
+      if (first !== 'kategori' && !/^\d{4}$/.test(first)) {
+        return `/${first}`;
+      }
+    }
+  }
+  return '';
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -42,7 +68,8 @@ export function getArticleUrl(article: { id: string; title: string; date?: strin
     }
   }
 
-  return `/${year}/${month}/${slug}.html`;
+  const base = getAppBasePath();
+  return `${base}/${year}/${month}/${slug}.html`;
 }
 
 export function findArticleFromPath(
@@ -57,8 +84,14 @@ export function findArticleFromPath(
     if (foundById) return foundById;
   }
 
+  const base = getAppBasePath();
+  let cleanPath = pathname;
+  if (base && pathname.startsWith(base)) {
+    cleanPath = pathname.substring(base.length);
+  }
+
   // Extract slug from URL pathname e.g. /2026/07/update-skor-piala-dunia-2026-tercepat.html
-  const cleanPath = pathname.replace(/\.html$/, '').replace(/\/$/, '');
+  cleanPath = cleanPath.replace(/\.html$/, '').replace(/\/$/, '');
   const segments = cleanPath.split('/').filter(Boolean);
 
   if (segments.length > 0) {
@@ -89,7 +122,13 @@ export function findCategoryFromPath(pathname: string, searchParams: URLSearchPa
   const qCat = searchParams.get('cat') || searchParams.get('kategori');
   if (qCat) return qCat;
 
-  const cleanPath = pathname.replace(/\/$/, '');
+  const base = getAppBasePath();
+  let cleanPath = pathname;
+  if (base && pathname.startsWith(base)) {
+    cleanPath = pathname.substring(base.length);
+  }
+
+  cleanPath = cleanPath.replace(/\/$/, '');
   if (cleanPath.startsWith('/kategori/')) {
     const rawCat = decodeURIComponent(cleanPath.replace('/kategori/', ''));
     return rawCat.replace(/-/g, ' ');

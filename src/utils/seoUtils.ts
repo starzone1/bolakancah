@@ -1,7 +1,7 @@
 import { Article } from '../types';
 import { getArticleUrl, slugify } from './urlUtils';
 
-const BASE_URL = 'https://aytextilemachinery.com';
+const BASE_URL = 'https://kancahtoto.pages.dev';
 
 function setMetaTag(selector: string, content: string, attr: 'name' | 'property' = 'name') {
   let element = document.querySelector(`meta[${attr}="${selector}"]`);

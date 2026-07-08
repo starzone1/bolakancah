@@ -6,7 +6,8 @@ import {
   getArticleUrl, 
   findArticleFromPath, 
   findCategoryFromPath, 
-  slugify 
+  slugify,
+  getAppBasePath
 } from './utils/urlUtils';
 import { updateSeoMeta } from './utils/seoUtils';
 import { 
@@ -261,12 +262,13 @@ export default function App() {
     setActiveCategory(cat);
     setSelectedArticle(null);
     setDisplayCount(7);
+    const base = getAppBasePath();
     if (cat) {
       const catSlug = slugify(cat);
-      window.history.pushState({ cat }, '', `/kategori/${catSlug}`);
+      window.history.pushState({ cat }, '', `${base}/kategori/${catSlug}`);
       updateSeoMeta({ category: cat });
     } else {
-      window.history.pushState({}, '', '/');
+      window.history.pushState({}, '', `${base}/` || '/');
       updateSeoMeta({});
     }
     window.scrollTo(0, 0);
@@ -292,7 +294,8 @@ export default function App() {
     setActiveCategory(null);
     setSelectedArticle(null);
     setDisplayCount(7);
-    window.history.pushState({}, '', '/');
+    const base = getAppBasePath();
+    window.history.pushState({}, '', `${base}/` || '/');
     updateSeoMeta({});
     window.scrollTo(0, 0);
     setTimeout(() => {
