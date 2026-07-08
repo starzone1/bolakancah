@@ -109,6 +109,9 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="ft-hd">Halaman</div>
             <a className="ft-a" onClick={() => onOpenModal('about')}>Tentang Kami</a>
             <a className="ft-a" onClick={() => onOpenModal('contact')}>Kontak</a>
+            <a className="ft-a flex items-center gap-1.5" href="mailto:astrakancah@gmail.com">
+              <i className="far fa-envelope text-xs" /> Hubungi Redaksi
+            </a>
             <a className="ft-a" onClick={() => onOpenModal('privacy')}>Kebijakan Privasi</a>
             <a className="ft-a" onClick={() => onOpenModal('disclaimer')}>Disclaimer</a>
             <a 
@@ -126,9 +129,42 @@ export const Footer: React.FC<FooterProps> = ({
           </div>
         </div>
 
+        {/* QUICK LINK TAGS */}
+        <div className="border-t border-[var(--border)] pt-6 pb-2 mt-8">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-extrabold text-[var(--fg3)] uppercase tracking-wider mr-2 font-mono">Tag Populer:</span>
+            {[
+              'Sepak Bola',
+              'Piala Dunia 2026',
+              'Prediksi Skor',
+              'Jadwal Bola',
+              'Analisis Taktis',
+              'Teknologi Esports',
+              'Kancah4D',
+              'KANCAHTOTO',
+              'Link Alternatif',
+              'ID VIP Kancah'
+            ].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => {
+                  if (tag === 'Link Alternatif') {
+                    window.open('https://akseslink.com/kancah4d', '_blank', 'noopener,noreferrer');
+                  } else {
+                    onSelectCategory(tag);
+                  }
+                }}
+                className="text-xs px-2.5 py-1 rounded-md bg-[var(--card)] hover:bg-[var(--accent)] hover:text-white border border-[var(--border)] text-[var(--fg3)] transition-all cursor-pointer font-medium"
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* BOTTOM COPYRIGHT */}
         <div className="ft-bottom">
-          <span>&#169; 2026 KANCAHTOTO. All rights reserved.</span>
+          <span>&#169; {new Date().getFullYear()} KANCAHTOTO. All rights reserved.</span>
           <span>Powered by KANCAHTOTO | STAR GAMING ASIA</span>
         </div>
       </div>

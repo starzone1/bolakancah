@@ -37,6 +37,7 @@ import { Footer } from './components/Footer';
 import { BackToTop } from './components/BackToTop';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminPanel } from './components/AdminPanel';
+import { WriterWorkspace } from './components/WriterWorkspace';
 
 export default function App() {
   // Articles state initialized with fallback mock, synced via Firestore
@@ -81,6 +82,19 @@ export default function App() {
   });
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+
+  // currentView can be 'reader' or 'writer'
+  const [currentView, setCurrentView] = useState<'reader' | 'writer'>(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const pathname = window.location.pathname;
+    const isWrite = pathname.includes('/tulis') || 
+                    pathname.includes('/write') || 
+                    pathname.includes('/editor') || 
+                    pathname.includes('/admin') ||
+                    searchParams.get('mode') === 'tulis' ||
+                    searchParams.get('write') === 'true';
+    return isWrite ? 'writer' : 'reader';
+  });
 
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -228,26 +242,47 @@ export default function App() {
       const searchParams = new URLSearchParams(window.location.search);
       const pathname = window.location.pathname;
 
-      // 1. Try to find article from URL path (e.g. /2026/07/judul-artikel.html or ?article=id)
+      // 1. Check for write/editor route
+      if (
+        pathname.includes('/tulis') || 
+        pathname.includes('/write') || 
+        pathname.includes('/editor') || 
+        pathname.includes('/admin') ||
+        searchParams.get('mode') === 'tulis' ||
+        searchParams.get('write') === 'true'
+      ) {
+        setCurrentView('writer');
+        setSelectedArticle(null);
+        setActiveCategory(null);
+        updateSeoMeta({
+          category: 'Portal Penulis'
+        });
+        return;
+      }
+
+      // 2. Try to find article from URL path (e.g. /2026/07/judul-artikel.html or ?article=id)
       const matchedArticle = findArticleFromPath(pathname, articles, searchParams);
       if (matchedArticle) {
         setSelectedArticle(matchedArticle);
+        setCurrentView('reader');
         updateSeoMeta({ article: matchedArticle });
         return;
       }
 
-      // 2. Try to find category from URL path (e.g. /kategori/sepak-bola or ?cat=sepak-bola)
+      // 3. Try to find category from URL path (e.g. /kategori/sepak-bola or ?cat=sepak-bola)
       const matchedCat = findCategoryFromPath(pathname, searchParams);
       if (matchedCat) {
         setSelectedArticle(null);
         setActiveCategory(matchedCat);
+        setCurrentView('reader');
         updateSeoMeta({ category: matchedCat });
         return;
       }
 
-      // 3. Fallback: home page
+      // 4. Fallback: home page
       setSelectedArticle(null);
       setActiveCategory(null);
+      setCurrentView('reader');
       updateSeoMeta({});
     };
 
@@ -261,6 +296,7 @@ export default function App() {
     setIsArticlesLoading(true);
     setActiveCategory(cat);
     setSelectedArticle(null);
+    setCurrentView('reader');
     setDisplayCount(7);
     const base = getAppBasePath();
     if (cat) {
@@ -280,6 +316,7 @@ export default function App() {
   const handleSelectArticle = (art: Article) => {
     setIsDetailLoading(true);
     setSelectedArticle(art);
+    setCurrentView('reader');
     const cleanUrl = getArticleUrl(art);
     window.history.pushState({ articleId: art.id }, '', cleanUrl);
     updateSeoMeta({ article: art });
@@ -293,6 +330,7 @@ export default function App() {
     setIsArticlesLoading(true);
     setActiveCategory(null);
     setSelectedArticle(null);
+    setCurrentView('reader');
     setDisplayCount(7);
     const base = getAppBasePath();
     window.history.pushState({}, '', `${base}/` || '/');
@@ -301,6 +339,16 @@ export default function App() {
     setTimeout(() => {
       setIsArticlesLoading(false);
     }, 200);
+  };
+
+  const handleGoToWriter = () => {
+    setCurrentView('writer');
+    setSelectedArticle(null);
+    setActiveCategory(null);
+    const base = getAppBasePath();
+    window.history.pushState({}, '', `${base}/tulis`);
+    updateSeoMeta({ category: 'Portal Penulis' });
+    window.scrollTo(0, 0);
   };
 
   return (
@@ -355,8 +403,8 @@ export default function App() {
         activeCategory={activeCategory}
         onSelectCategory={handleSelectCategory}
         isAdminLoggedIn={isAdminLoggedIn}
-        onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
-        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+        onOpenAdminLogin={handleGoToWriter}
+        onOpenAdminPanel={handleGoToWriter}
       />
 
       {/* Site Header */}
@@ -369,129 +417,142 @@ export default function App() {
         onToggleTheme={handleToggleTheme}
         onGoHome={handleGoHome}
         isAdminLoggedIn={isAdminLoggedIn}
-        onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
-        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+        onOpenAdminLogin={handleGoToWriter}
+        onOpenAdminPanel={handleGoToWriter}
       />
 
       {/* Main Container */}
       <div className="site-content flex-1">
-        <div className="main-wrap">
-          {/* CONTENT COLUMN */}
-          <div className="content-col">
-            <LayoutGroup id="page-route-transitions">
-              <AnimatePresence mode="wait">
-                {selectedArticle ? (
-                  /* SINGLE ARTICLE READER VIEW */
-                  <motion.div
-                    key={`art-${selectedArticle.id}`}
-                    layout
-                    initial={{ opacity: 0, y: 10, scale: 0.99 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.99 }}
-                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    <ArticleDetail
-                      article={selectedArticle}
-                      onBack={handleGoHome}
-                      relatedArticles={articles.filter((a) => a.id !== selectedArticle.id)}
-                      onSelectArticle={handleSelectArticle}
-                      isLoading={isDetailLoading}
-                    />
-                  </motion.div>
-                ) : (
-                  /* ARTICLES LIST VIEW */
-                  <motion.div
-                    key={`cat-${activeCategory || 'home'}`}
-                    layout
-                    initial={{ opacity: 0, y: 10, scale: 0.99 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.99 }}
-                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    {/* ACTIVE CATEGORY / BREADCRUMB BADGE */}
-                    {activeCategory && (
-                      <div className="mb-6 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-[var(--fg3)] font-semibold">Kategori:</span>
-                          <span className="text-sm font-extrabold text-[var(--accent-l)] font-display uppercase tracking-wider">
-                            {activeCategory}
-                          </span>
-                          <span className="text-xs text-[var(--fg4)] font-mono ml-2">
-                            ({filteredArticles.length} berita)
-                          </span>
-                        </div>
-                        <button
-                          onClick={handleGoHome}
-                          className="text-xs text-[var(--fg3)] hover:text-white flex items-center gap-1 font-bold"
-                        >
-                          <i className="fas fa-times" /> Hapus Filter
-                        </button>
-                      </div>
-                    )}
-
-                    {/* AI MATCH PREDICTOR WIDGET (Hero feature on home) */}
-                    {!activeCategory && <MatchPredictorWidget />}
-
-                    {isArticlesLoading ? (
-                      <ArticleGridSkeleton count={displayCount} />
-                    ) : filteredArticles.length === 0 ? (
-                      <div className="p-12 text-center rounded-2xl bg-[var(--card)] border border-[var(--border)]">
-                        <i className="fas fa-newspaper text-4xl text-[var(--fg4)] mb-3 block" />
-                        <h3 className="text-sm font-bold text-[var(--fg)] mb-1">
-                          Belum Ada Berita Dalam Kategori Ini
-                        </h3>
-                        <p className="text-xs text-[var(--fg3)] mb-4">
-                          Silakan pilih kategori lain atau buat berita baru via Panel Admin.
-                        </p>
-                        <button
-                          onClick={handleGoHome}
-                          className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-xs font-bold"
-                        >
-                          Lihat Semua Berita
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="index-post-grid">
-                          {visibleArticles.map((article, idx) => (
-                            <ArticleCard
-                              key={article.id}
-                              article={article}
-                              isFeatured={idx === 0 && !activeCategory && article.featured}
-                              onSelect={handleSelectArticle}
-                              onSelectCategory={handleSelectCategory}
-                            />
-                          ))}
-                        </div>
-
-                        {/* BLOG PAGER / SHOW MORE */}
-                        {hasMore && (
-                          <div id="blog-pager">
-                            <button
-                              onClick={() => setDisplayCount((prev) => prev + 6)}
-                              className="hover:scale-105"
-                            >
-                              Muat Berita Lebih Banyak <i className="fas fa-chevron-down ml-1" />
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </LayoutGroup>
-          </div>
-
-          {/* SIDEBAR COLUMN */}
-          <Sidebar
-            categories={dynamicCategories}
-            activeCategory={activeCategory}
-            onSelectCategory={handleSelectCategory}
-            fixtures={fixtures}
-            onOpenModal={(type) => setActiveModal(type)}
+        {currentView === 'writer' ? (
+          <WriterWorkspace
+            articles={articles}
+            onAddArticle={handleAddArticle}
+            onUpdateArticle={handleUpdateArticle}
+            onDeleteArticle={handleDeleteArticle}
+            categories={categoryNames}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onLoginSuccess={handleAdminLoginSuccess}
+            onGoToPortal={handleGoHome}
           />
-        </div>
+        ) : (
+          <div className="main-wrap">
+            {/* CONTENT COLUMN */}
+            <div className="content-col">
+              <LayoutGroup id="page-route-transitions">
+                <AnimatePresence mode="wait">
+                  {selectedArticle ? (
+                    /* SINGLE ARTICLE READER VIEW */
+                    <motion.div
+                      key={`art-${selectedArticle.id}`}
+                      layout
+                      initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.99 }}
+                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <ArticleDetail
+                        article={selectedArticle}
+                        onBack={handleGoHome}
+                        relatedArticles={articles.filter((a) => a.id !== selectedArticle.id)}
+                        onSelectArticle={handleSelectArticle}
+                        isLoading={isDetailLoading}
+                      />
+                    </motion.div>
+                  ) : (
+                    /* ARTICLES LIST VIEW */
+                    <motion.div
+                      key={`cat-${activeCategory || 'home'}`}
+                      layout
+                      initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.99 }}
+                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      {/* ACTIVE CATEGORY / BREADCRUMB BADGE */}
+                      {activeCategory && (
+                        <div className="mb-6 p-4 rounded-xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--fg3)] font-semibold">Kategori:</span>
+                            <span className="text-sm font-extrabold text-[var(--accent-l)] font-display uppercase tracking-wider">
+                              {activeCategory}
+                            </span>
+                            <span className="text-xs text-[var(--fg4)] font-mono ml-2">
+                              ({filteredArticles.length} berita)
+                            </span>
+                          </div>
+                          <button
+                            onClick={handleGoHome}
+                            className="text-xs text-[var(--fg3)] hover:text-white flex items-center gap-1 font-bold"
+                          >
+                            <i className="fas fa-times" /> Hapus Filter
+                          </button>
+                        </div>
+                      )}
+
+                      {/* AI MATCH PREDICTOR WIDGET (Hero feature on home) */}
+                      {!activeCategory && <MatchPredictorWidget />}
+
+                      {isArticlesLoading ? (
+                        <ArticleGridSkeleton count={displayCount} />
+                      ) : filteredArticles.length === 0 ? (
+                        <div className="p-12 text-center rounded-2xl bg-[var(--card)] border border-[var(--border)]">
+                          <i className="fas fa-newspaper text-4xl text-[var(--fg4)] mb-3 block" />
+                          <h3 className="text-sm font-bold text-[var(--fg)] mb-1">
+                            Belum Ada Berita Dalam Kategori Ini
+                          </h3>
+                          <p className="text-xs text-[var(--fg3)] mb-4">
+                            Silakan pilih kategori lain atau buat berita baru via Panel Admin.
+                          </p>
+                          <button
+                            onClick={handleGoHome}
+                            className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-xs font-bold"
+                          >
+                            Lihat Semua Berita
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="index-post-grid">
+                            {visibleArticles.map((article, idx) => (
+                              <ArticleCard
+                                key={article.id}
+                                article={article}
+                                isFeatured={idx === 0 && !activeCategory && article.featured}
+                                onSelect={handleSelectArticle}
+                                onSelectCategory={handleSelectCategory}
+                              />
+                            ))}
+                          </div>
+
+                          {/* BLOG PAGER / SHOW MORE */}
+                          {hasMore && (
+                            <div id="blog-pager">
+                              <button
+                                onClick={() => setDisplayCount((prev) => prev + 6)}
+                                className="hover:scale-105"
+                              >
+                                Muat Berita Lebih Banyak <i className="fas fa-chevron-down ml-1" />
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </LayoutGroup>
+            </div>
+
+            {/* SIDEBAR COLUMN */}
+            <Sidebar
+              categories={dynamicCategories}
+              activeCategory={activeCategory}
+              onSelectCategory={handleSelectCategory}
+              fixtures={fixtures}
+              onOpenModal={(type) => setActiveModal(type)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Site Footer */}
@@ -500,8 +561,8 @@ export default function App() {
         onSelectCategory={handleSelectCategory}
         onGoHome={handleGoHome}
         isAdminLoggedIn={isAdminLoggedIn}
-        onOpenAdminLogin={() => setIsAdminLoginOpen(true)}
-        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+        onOpenAdminLogin={handleGoToWriter}
+        onOpenAdminPanel={handleGoToWriter}
       />
 
       {/* Floating Back to Top Button */}
