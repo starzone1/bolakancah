@@ -1,0 +1,6 @@
+{
+  "name": "KANCAH4D - Portal Berita Sepak Bola & Prediksi Skor Akurat Di KANCAHTOTO",
+  "description": "Portal berita sepak bola terkini, prediksi skor, dan informasi gaming terpercaya.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

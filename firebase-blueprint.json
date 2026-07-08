@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "articles": {
+      "title": "Articles",
+      "description": "News articles published on Kancahtoto portal",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "labels": { "type": "array", "items": { "type": "string" } },
+        "author": { "type": "string" },
+        "date": { "type": "string" },
+        "image": { "type": "string" },
+        "summary": { "type": "string" },
+        "content": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "views": { "type": "number" },
+        "commentsCount": { "type": "number" }
+      },
+      "required": ["title", "category", "content", "summary", "image"]
+    },
+    "fixtures": {
+      "title": "Fixtures & Predictions",
+      "description": "Football match fixtures and score predictions",
+      "properties": {
+        "homeTeam": { "type": "string" },
+        "awayTeam": { "type": "string" },
+        "homeLogo": { "type": "string" },
+        "awayLogo": { "type": "string" },
+        "homeScore": { "type": "number" },
+        "awayScore": { "type": "number" },
+        "matchDate": { "type": "string" },
+        "league": { "type": "string" },
+        "prediction": { "type": "string" },
+        "odds": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["homeTeam", "awayTeam", "matchDate", "league", "prediction", "status"]
+    }
+  }
+}
