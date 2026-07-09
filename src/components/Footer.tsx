@@ -100,7 +100,7 @@ export const Footer: React.FC<FooterProps> = ({
             <a className="ft-a" onClick={() => onSelectCategory('Kancah4D')}>Kancah4D Official</a>
             <a className="ft-a" onClick={() => onSelectCategory('KANCAHTOTO')}>KANCAHTOTO Online</a>
             <a className="ft-a" onClick={() => onSelectCategory('Prediksi Kancah4D')}>Prediksi Kancah4D</a>
-            <a className="ft-a" href="https://akseslink.com/kancah4d" target="_blank" rel="noopener noreferrer">Link Alternatif Kancah4D</a>
+            <a className="ft-a" href="https://bolakancah.asia" target="_blank" rel="noopener noreferrer">Link Alternatif Kancah4D</a>
             <a className="ft-a" onClick={() => onSelectCategory('Daftar Kancahtoto')}>Daftar Kancahtoto VVIP</a>
           </div>
 
@@ -149,7 +149,7 @@ export const Footer: React.FC<FooterProps> = ({
                 key={tag}
                 onClick={() => {
                   if (tag === 'Link Alternatif') {
-                    window.open('https://akseslink.com/kancah4d', '_blank', 'noopener,noreferrer');
+                    window.open('https://bolakancah.asia', '_blank', 'noopener,noreferrer');
                   } else {
                     onSelectCategory(tag);
                   }

@@ -720,7 +720,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <i className="fab fa-google text-blue-500 mr-1" /> Google Search Result
                     </span>
                     <div className="text-[10px] text-emerald-500 truncate font-mono">
-                      https://kancah4d.news/2026/07/{slug ? slugify(slug) : slugify(title || 'judul-berita')}.html
+                      https://bolakancah.asia/2026/07/{slug ? slugify(slug) : slugify(title || 'judul-berita')}.html
                     </div>
                     <div className="text-xs text-[#4b8df8] hover:underline font-semibold truncate font-sans">
                       {title || 'Judul Berita Utama...'}

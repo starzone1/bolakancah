@@ -11,7 +11,7 @@ import path from 'path';
 import { mockArticles, mockCategories } from '../src/data/mockNews';
 import { getArticleUrl, slugify } from '../src/utils/urlUtils';
 
-const BASE_URL = 'https://kancahtoto.pages.dev';
+const BASE_URL = 'https://bolakancah.asia';
 
 interface FirestoreArticleDoc {
   name: string;

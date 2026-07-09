@@ -666,7 +666,7 @@ export const WriterWorkspace: React.FC<WriterWorkspaceProps> = ({
                     <div className="p-3 bg-[var(--bg3)] rounded-xl border border-[var(--border)] space-y-1 text-[11px]">
                       <div className="text-zinc-500 uppercase font-bold text-[9px]">Google Search Result</div>
                       <div className="text-[10px] text-emerald-400 truncate font-mono">
-                        bolakancah.pages.dev/2026/07/{slug ? slugify(slug) : slugify(title || 'judul-artikel')}.html
+                        bolakancah.asia/2026/07/{slug ? slugify(slug) : slugify(title || 'judul-artikel')}.html
                       </div>
                       <div className="text-xs text-blue-400 font-semibold hover:underline truncate">
                         {title || 'Judul Utama Artikel Olahraga...'}

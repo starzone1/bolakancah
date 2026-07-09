@@ -52,7 +52,7 @@ export const Modals: React.FC<ModalsProps> = ({ activeModal, onClose }) => {
             
             <h4><i className="fa-solid fa-link" /> Alternatif Link VVIP</h4>
             <p>
-              <a href="https://akseslink.com/kancah4d" target="_blank" rel="noopener noreferrer">
+              <a href="https://bolakancah.asia" target="_blank" rel="noopener noreferrer">
                 Daftar ID VVIP
               </a>
             </p>
