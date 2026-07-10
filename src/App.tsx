@@ -20,8 +20,10 @@ import {
   deleteArticleFromDb, 
   saveFixtureToDb, 
   updateFixtureInDb, 
-  deleteFixtureFromDb 
+  deleteFixtureFromDb,
+  saveSitemapToDb
 } from './services/dbService';
+import { generateSitemapXml } from './utils/generateSitemap';
 
 import { Header } from './components/Header';
 import { MobileMenu } from './components/MobileMenu';
@@ -146,31 +148,53 @@ export default function App() {
       id: `art-${Date.now()}`
     };
     // Optimistic update
-    setArticles((prev) => [newArticle, ...prev]);
+    const updatedArticles = [newArticle, ...articles];
+    setArticles(updatedArticles);
     // Save to Cloud Database (Auto-sync to all devices)
     await saveArticleToDb(newArticle);
+    // Auto-update sitemap in database
+    try {
+      const sitemapXml = generateSitemapXml(updatedArticles);
+      await saveSitemapToDb(sitemapXml);
+    } catch (err) {
+      console.error('Failed to auto-update sitemap:', err);
+    }
   };
 
   const handleUpdateArticle = async (updatedArticle: Article) => {
     // Optimistic update
-    setArticles((prev) =>
-      prev.map((art) => (art.id === updatedArticle.id ? updatedArticle : art))
-    );
+    const updatedArticles = articles.map((art) => (art.id === updatedArticle.id ? updatedArticle : art));
+    setArticles(updatedArticles);
     if (selectedArticle && selectedArticle.id === updatedArticle.id) {
       setSelectedArticle(updatedArticle);
     }
     // Update Cloud Database (Auto-sync to all devices)
     await updateArticleInDb(updatedArticle);
+    // Auto-update sitemap in database
+    try {
+      const sitemapXml = generateSitemapXml(updatedArticles);
+      await saveSitemapToDb(sitemapXml);
+    } catch (err) {
+      console.error('Failed to auto-update sitemap:', err);
+    }
   };
 
   const handleDeleteArticle = async (id: string) => {
     // Optimistic update
-    setArticles((prev) => prev.filter((art) => art.id !== id));
+    const updatedArticles = articles.filter((art) => art.id !== id);
+    setArticles(updatedArticles);
     if (selectedArticle && selectedArticle.id === id) {
       setSelectedArticle(null);
     }
     // Delete from Cloud Database (Auto-sync to all devices)
     await deleteArticleFromDb(id);
+    // Auto-update sitemap in database
+    try {
+      const sitemapXml = generateSitemapXml(updatedArticles);
+      await saveSitemapToDb(sitemapXml);
+    } catch (err) {
+      console.error('Failed to auto-update sitemap:', err);
+    }
   };
 
   const handleAddFixture = async (newFixtureData: Omit<Fixture, 'id'>) => {

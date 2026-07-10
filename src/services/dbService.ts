@@ -488,4 +488,43 @@ export const addArticleCommentToDb = async (
   }
 };
 
+/**
+ * Save dynamically generated sitemap XML string to Firestore database
+ */
+export const saveSitemapToDb = async (xmlString: string) => {
+  const path = `${METADATA_COLLECTION}/sitemap`;
+  try {
+    const docRef = doc(db, METADATA_COLLECTION, 'sitemap');
+    await setDoc(docRef, {
+      xml: xmlString,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+};
+
+/**
+ * Fetch the stored sitemap XML from Firestore
+ */
+export const getSitemapFromDb = async (): Promise<{ xml: string; updatedAt: string } | null> => {
+  const path = `${METADATA_COLLECTION}/sitemap`;
+  try {
+    const docRef = doc(db, METADATA_COLLECTION, 'sitemap');
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      return {
+        xml: data.xml || '',
+        updatedAt: data.updatedAt || ''
+      };
+    }
+    return null;
+  } catch (err) {
+    handleFirestoreError(err, OperationType.GET, path);
+    return null;
+  }
+};
+
+
 

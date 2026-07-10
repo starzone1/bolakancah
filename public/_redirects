@@ -1,1 +1,3 @@
-/* /index.html 200
+# Redirect all pages from bolakancah.pages.dev to bolakancah.asia preserving URL paths
+https://bolakancah.pages.dev/* https://bolakancah.asia/:splat 301!
+http://bolakancah.pages.dev/* https://bolakancah.asia/:splat 301!

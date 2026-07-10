@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Article, Fixture } from '../types';
 import { slugify } from '../utils/urlUtils';
+import { generateSitemapXml } from '../utils/generateSitemap';
+import { saveSitemapToDb } from '../services/dbService';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -15,7 +17,7 @@ interface AdminPanelProps {
   onDeleteFixture?: (id: string) => Promise<void> | void;
   onLogout: () => void;
   categories: string[];
-  defaultTab?: 'create' | 'manage' | 'fixtures' | 'stats';
+  defaultTab?: 'create' | 'manage' | 'fixtures' | 'stats' | 'sitemap';
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -33,7 +35,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   categories,
   defaultTab
 }) => {
-  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'fixtures' | 'stats'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'manage' | 'fixtures' | 'stats' | 'sitemap'>('create');
 
   useEffect(() => {
     if (isOpen && defaultTab) {
@@ -525,6 +527,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           >
             <i className={`fas fa-chart-line text-sm ${activeTab === 'stats' ? 'text-red-500' : 'text-zinc-400'}`} />
             <span>Statistik & Informasi</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('sitemap')}
+            className={`py-3 px-4 rounded-t-xl text-xs font-bold tracking-wide flex items-center gap-2.5 transition-all border-t border-x whitespace-nowrap ${
+              activeTab === 'sitemap'
+                ? 'bg-[#0d0f14] text-white border-red-500/40 border-b-0 text-red-400 shadow-md'
+                : 'bg-zinc-900/40 text-zinc-400 border-transparent hover:text-zinc-200 hover:bg-zinc-800/50'
+            }`}
+          >
+            <i className={`fas fa-sitemap text-sm ${activeTab === 'sitemap' ? 'text-red-500' : 'text-zinc-400'}`} />
+            <span>Peta Situs (Sitemap)</span>
           </button>
         </div>
 
@@ -1457,6 +1471,73 @@ FC Maxline Vitebsk [n] VS CS Universitatea Craiova 1/2 : 0`);
                   <div className="p-3 rounded-xl bg-[#0d0f14] border border-zinc-800 flex items-center gap-2.5 text-xs text-zinc-300">
                     <i className="fas fa-bolt text-amber-400 text-sm" />
                     <span>Perubahan Langsung Live Tanpa Delay</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: SITEMAP XML GENERATOR */}
+          {activeTab === 'sitemap' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="p-6 rounded-2xl bg-[#12151f] border border-zinc-800 space-y-4 shadow-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <i className="fas fa-sitemap text-red-500 text-base" />
+                      <span>Generator Peta Situs XML (Sitemap.xml)</span>
+                    </h4>
+                    <p className="text-[11px] text-zinc-400 mt-1">
+                      Salin peta situs XML di bawah ini ke webmaster tools atau simpan pembaruan langsung ke database cloud.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const xml = generateSitemapXml(articles);
+                          await saveSitemapToDb(xml);
+                          showToast('Sitemap berhasil diperbarui di database cloud!');
+                        } catch (err) {
+                          alert('Gagal menyimpan sitemap: ' + err);
+                        }
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 border border-red-500/20"
+                    >
+                      <i className="fas fa-sync" />
+                      <span>Sync ke Database</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const xml = generateSitemapXml(articles);
+                        navigator.clipboard.writeText(xml);
+                        showToast('Teks XML sitemap berhasil disalin ke papan klip!');
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-all border border-zinc-700 flex items-center gap-2"
+                    >
+                      <i className="fas fa-copy" />
+                      <span>Salin XML</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-extrabold text-zinc-400 uppercase tracking-wider">
+                    XML Output Preview ({articles.length} artikel terbit + 6 kategori utama + homepage)
+                  </label>
+                  <textarea
+                    readOnly
+                    value={generateSitemapXml(articles)}
+                    className="w-full h-80 px-4 py-3 bg-[#0d0f14] border border-zinc-800 rounded-xl text-xs text-emerald-400 font-mono outline-none focus:border-red-500/50 transition-all resize-none overflow-y-auto no-scrollbar scrollbar-none"
+                  />
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex gap-3">
+                  <i className="fas fa-info-circle text-sm mt-0.5" />
+                  <div>
+                    <span className="font-bold">Info Integrasi Otomatis:</span> Setiap kali Anda menambahkan artikel baru, mengubah artikel yang ada, atau menghapusnya, sitemap ini akan secara <strong>otomatis diperbarui secara real-time</strong> baik di sitemap saku database Anda maupun direfleksikan langsung di peta situs ini.
                   </div>
                 </div>
               </div>
