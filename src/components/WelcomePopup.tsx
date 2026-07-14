@@ -1,21 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import welcomeBanner from '../assets/images/hatihati_popup_1784015233936.jpg';
-
 export const WelcomePopup: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'banner' | 'rules'>('banner');
 
   useEffect(() => {
-    // Check session storage so it doesn't open on every page refresh
-    if (!sessionStorage.getItem('welcomeBannerPopupShown')) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 800);
-      sessionStorage.setItem('welcomeBannerPopupShown', 'true');
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+    }, 800);
+    return () => clearTimeout(timer);
   }, []);
 
   if (!isOpen) return null;
@@ -88,15 +82,6 @@ export const WelcomePopup: React.FC = () => {
                   transition={{ duration: 0.25 }}
                   className="space-y-5"
                 >
-                  <div className="text-center space-y-1">
-                    <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-widest">
-                      <i className="fas fa-exclamation-triangle text-[10px] text-amber-500 animate-bounce" /> PENTING: INFORMASI PORTAL RESMI
-                    </span>
-                    <h3 className="text-lg font-extrabold text-white tracking-tight">
-                      Selamat Datang di Portal Resmi Kancahtoto
-                    </h3>
-                  </div>
-
                   {/* Banner Image wrapper with high-impact click action */}
                   <div 
                     onClick={() => setViewMode('rules')}
@@ -104,13 +89,14 @@ export const WelcomePopup: React.FC = () => {
                     id="welcomeBannerAction"
                   >
                     <img 
-                      src={welcomeBanner} 
+                      src="https://ik.imagekit.io/dxokd3m9y/hatihati.webp" 
                       alt="Kancah4D Anti-Fraud Banner" 
                       className="w-full h-auto object-cover transform group-hover:scale-[1.025] transition-transform duration-500"
+                      referrerPolicy="no-referrer"
                     />
                     
                     {/* Visual Hover Instructions Layer */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/35 flex flex-col justify-between p-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/35 flex flex-col justify-between p-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
                       <div className="flex justify-end">
                         <span className="bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow-md">
                           Klik Untuk Aturan
