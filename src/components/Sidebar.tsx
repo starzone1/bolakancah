@@ -35,7 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </span>
         </div>
         <p className="text-[11px] text-[var(--fg3)] mb-3 leading-relaxed">
-          Dapatkan prioritas transaksi 24/7, bonus deposit harian, & akses fitur prediksi eksklusif!
+          Dapatkan prioritas transaksi 24/7, layanan VVIP eksklusif, & akses fitur prediksi eksklusif!
         </p>
         <a
           href="https://akseslink.com/kancah4d"
