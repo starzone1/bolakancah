@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import welcomeBanner from '../assets/images/kancah_og_banner_1782968201176.jpg';
+import welcomeBanner from '../assets/images/hatihati_popup_1784015233936.jpg';
 
 export const WelcomePopup: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
