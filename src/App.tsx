@@ -34,7 +34,6 @@ import { ArticleCard } from './components/ArticleCard';
 import { ArticleDetail } from './components/ArticleDetail';
 import { ArticleGridSkeleton, ArticleDetailSkeleton } from './components/SkeletonLoader';
 import { Sidebar } from './components/Sidebar';
-import { MatchPredictorWidget } from './components/MatchPredictorWidget';
 import { Footer } from './components/Footer';
 import { BackToTop } from './components/BackToTop';
 import { AdminLoginModal } from './components/AdminLoginModal';
@@ -572,12 +571,7 @@ export default function App() {
                         </div>
                       )}
 
-                      {/* AI MATCH PREDICTOR WIDGET (Hero feature on home) */}
-                      {!activeCategory && (
-                        <>
-                          <MatchPredictorWidget />
-                        </>
-                      )}
+
 
                       {isArticlesLoading ? (
                         <ArticleGridSkeleton count={displayCount} />

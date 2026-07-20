@@ -134,7 +134,7 @@ const coreArticles = [
   }
 ];
 
-// 2. Fetch live articles from Firestore Database REST API
+// 2. Fetch live articles from Firestore Database REST API or SDK
 async function fetchArticlesFromFirestore() {
   try {
     const configPath = path.resolve(process.cwd(), 'firebase-applet-config.json');
@@ -144,43 +144,32 @@ async function fetchArticlesFromFirestore() {
     }
 
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    const { projectId, firestoreDatabaseId } = config;
-
-    if (!projectId || !firestoreDatabaseId) {
-      console.log('Project details not specified in firebase-applet-config.json. Falling back.');
-      return [];
-    }
-
-    console.log(`Connecting to Firestore REST API for database: ${firestoreDatabaseId}...`);
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/${firestoreDatabaseId}/documents/articles?pageSize=300`;
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.log(`Firestore API returned status: ${response.status}. Fallback will be used.`);
-      return [];
-    }
+    console.log(`Connecting to Firestore using official Web SDK (Database: ${config.firestoreDatabaseId})...`);
+    
+    const { initializeApp } = await import('firebase/app');
+    const { getFirestore, collection, getDocs } = await import('firebase/firestore');
 
-    const data = await response.json();
-    if (!data.documents || !Array.isArray(data.documents)) {
-      console.log('No documents found in the Firestore articles collection.');
-      return [];
-    }
+    const app = initializeApp(config);
+    const db = getFirestore(app, config.firestoreDatabaseId);
 
-    const fetched = data.documents.map((doc: any) => {
-      const fields = doc.fields || {};
-      const id = path.basename(doc.name);
-      
-      const title = fields.title?.stringValue || '';
-      const date = fields.date?.stringValue || '01 Juli 2026';
-      const slug = fields.slug?.stringValue || '';
-
-      return { id, title, date, slug };
+    const colRef = collection(db, 'articles');
+    const querySnapshot = await getDocs(colRef);
+    
+    const fetched = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title || '',
+        date: data.date || '01 Juli 2026',
+        slug: data.slug || ''
+      };
     });
 
-    console.log(`Successfully fetched ${fetched.length} live articles from Firestore.`);
+    console.log(`Successfully fetched ${fetched.length} live articles from Firestore via Web SDK.`);
     return fetched;
   } catch (err) {
-    console.warn('Error fetching live articles from Firestore:', err);
+    console.warn('Error fetching live articles from Firestore via Web SDK:', err);
     return [];
   }
 }
@@ -274,7 +263,12 @@ async function generateDynamicSitemap() {
   }
 }
 
-generateDynamicSitemap().catch((err) => {
-  console.error('Failed to generate sitemap:', err);
-  process.exit(1);
-});
+generateDynamicSitemap()
+  .then(() => {
+    console.log('[Sitemap] Finished successfully.');
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error('Failed to generate sitemap:', err);
+    process.exit(1);
+  });

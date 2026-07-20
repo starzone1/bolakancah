@@ -78,14 +78,39 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           {article.summary}
         </p>
 
-        <div className="ic-meta">
-          <span>{article.author}</span>
-          <span className="ic-meta-dot" />
-          <span>{article.date}</span>
-          {article.views && (
+        <div className="ic-meta flex items-center gap-2 text-[11px] text-[var(--fg3)] pt-3 border-t border-[var(--border)]/40 mt-auto">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {article.authorAvatar && article.authorAvatar.trim() !== '' ? (
+              <img 
+                src={article.authorAvatar}
+                alt={article.Author || article.author || article.authorName || 'Author'}
+                className="w-5 h-5 rounded-full object-cover border border-[var(--border)] flex-shrink-0"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.onerror = null;
+                  target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80';
+                }}
+              />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-[var(--bg3)] border border-[var(--border)] flex items-center justify-center text-[10px] text-[var(--accent-l)] flex-shrink-0">
+                <i className="fas fa-user-circle text-[11px]" />
+              </div>
+            )}
+            <span className="font-semibold text-[var(--fg)] truncate max-w-[120px]" title={article.Author || article.author || article.authorName || 'Redaksi'}>
+              {article.Author || article.author || article.authorName || 'Redaksi'}
+            </span>
+          </div>
+          
+          <span className="ic-meta-dot flex-shrink-0" />
+          <span className="truncate flex-shrink-0">{article.date}</span>
+          
+          {article.views !== undefined && (
             <>
-              <span className="ic-meta-dot" />
-              <span><i className="far fa-eye mr-1" />{article.views.toLocaleString()}</span>
+              <span className="ic-meta-dot flex-shrink-0" />
+              <span className="flex-shrink-0 font-mono">
+                <i className="far fa-eye mr-0.5 text-[var(--accent)]" /> 
+                {article.views.toLocaleString()}
+              </span>
             </>
           )}
         </div>
