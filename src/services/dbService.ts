@@ -119,7 +119,14 @@ export const seedInitialArticlesIfEmpty = async (initialArticles: Article[]) => 
             content: art.content || '',
             featured: Boolean(art.featured),
             views: art.views || 100,
-            commentsCount: art.commentsCount || 0
+            commentsCount: art.commentsCount || 0,
+            slug: art.slug || '',
+            excerpt: art.excerpt || '',
+            tags: art.tags || [],
+            imageUrl: art.imageUrl || '',
+            authorId: art.authorId || '',
+            authorName: art.authorName || '',
+            createdAt: art.createdAt || ''
           });
         } catch (err) {
           handleFirestoreError(err, OperationType.WRITE, `${ARTICLES_COLLECTION}/${art.id}`);
@@ -233,7 +240,14 @@ export const subscribeArticles = (
             content: data.content || '',
             featured: Boolean(data.featured),
             views: typeof data.views === 'number' ? data.views : 1,
-            commentsCount: typeof data.commentsCount === 'number' ? data.commentsCount : 0
+            commentsCount: typeof data.commentsCount === 'number' ? data.commentsCount : 0,
+            slug: data.slug || '',
+            excerpt: data.excerpt || '',
+            tags: Array.isArray(data.tags) ? data.tags : [],
+            imageUrl: data.imageUrl || '',
+            authorId: data.authorId || '',
+            authorName: data.authorName || '',
+            createdAt: data.createdAt || ''
           };
         });
 
@@ -280,7 +294,14 @@ export const saveArticleToDb = async (article: Article) => {
       content: article.content || '',
       featured: Boolean(article.featured),
       views: article.views || 1,
-      commentsCount: article.commentsCount || 0
+      commentsCount: article.commentsCount || 0,
+      slug: article.slug || '',
+      excerpt: article.excerpt || '',
+      tags: article.tags || [],
+      imageUrl: article.imageUrl || '',
+      authorId: article.authorId || '',
+      authorName: article.authorName || '',
+      createdAt: article.createdAt || ''
     });
   } catch (err) {
     handleFirestoreError(err, OperationType.WRITE, path);
@@ -309,7 +330,14 @@ export const updateArticleInDb = async (article: Article) => {
       content: article.content || '',
       featured: Boolean(article.featured),
       views: article.views || 1,
-      commentsCount: article.commentsCount || 0
+      commentsCount: article.commentsCount || 0,
+      slug: article.slug || '',
+      excerpt: article.excerpt || '',
+      tags: article.tags || [],
+      imageUrl: article.imageUrl || '',
+      authorId: article.authorId || '',
+      authorName: article.authorName || '',
+      createdAt: article.createdAt || ''
     }, { merge: true });
   } catch (err) {
     handleFirestoreError(err, OperationType.UPDATE, path);

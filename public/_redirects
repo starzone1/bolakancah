@@ -1,3 +1,6 @@
 # Redirect all pages from bolakancah.pages.dev to bolakancah.asia preserving URL paths
 https://bolakancah.pages.dev/* https://bolakancah.asia/:splat 301!
 http://bolakancah.pages.dev/* https://bolakancah.asia/:splat 301!
+
+# SPA Fallback for Cloudflare Pages (Serves index.html with 200 OK for all article and category routes)
+/* /index.html 200

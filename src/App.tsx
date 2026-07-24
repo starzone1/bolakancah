@@ -45,6 +45,7 @@ export default function App() {
   const [articles, setArticles] = useState<Article[]>(mockArticles);
   const [isArticlesLoading, setIsArticlesLoading] = useState<boolean>(true);
   const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false);
+  const [isQuotaExceeded, setIsQuotaExceeded] = useState<boolean>(false);
 
   // Fixtures / Predictions state initialized with fallback mock, synced via Firestore
   const [fixtures, setFixtures] = useState<Fixture[]>(mockFixtures);
@@ -59,9 +60,14 @@ export default function App() {
     const unsubscribeArticles = subscribeArticles((remoteArticles) => {
       setArticles(remoteArticles);
       setIsArticlesLoading(false);
+      setIsQuotaExceeded(false);
     }, (err) => {
       console.error('Articles sync error:', err);
       setIsArticlesLoading(false);
+      const errMsg = err.message || '';
+      if (errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('resource-exhausted') || errMsg.toLowerCase().includes('limit')) {
+        setIsQuotaExceeded(true);
+      }
     });
 
     // Subscribe to live fixtures updates across all devices
@@ -69,6 +75,10 @@ export default function App() {
       setFixtures(remoteFixtures);
     }, (err) => {
       console.error('Fixtures sync error:', err);
+      const errMsg = err.message || '';
+      if (errMsg.toLowerCase().includes('quota') || errMsg.toLowerCase().includes('resource-exhausted') || errMsg.toLowerCase().includes('limit')) {
+        setIsQuotaExceeded(true);
+      }
     });
 
     return () => {
@@ -472,6 +482,26 @@ export default function App() {
           <div className="main-wrap">
             {/* CONTENT COLUMN */}
             <div className="content-col">
+              {/* GOOGLE FIREBASE QUOTA ALERT BANNER */}
+              {isQuotaExceeded && (
+                <div className="w-full bg-red-950/40 border border-red-500/40 rounded-2xl p-5 mb-6 shadow-2xl text-red-200 text-xs sm:text-sm backdrop-blur-md animate-pulse">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0 border border-red-500/40 text-red-400 text-xl">
+                      <i className="fas fa-exclamation-triangle animate-bounce" />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-red-400 text-sm sm:text-base mb-1.5 uppercase tracking-wide flex flex-wrap items-center gap-2">
+                        <span>Sistem Cloud Firebase Melebihi Kuota (Quota Limit Exceeded)</span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/40 text-[10px] font-black font-mono tracking-wider animate-pulse">Offline Fallback</span>
+                      </h4>
+                      <p className="leading-relaxed opacity-95 text-zinc-300">
+                        Artikel Anda <strong>aman di dalam database</strong>, tetapi saat ini situs terpaksa menampilkan artikel default (Fallback) karena limit baca harian pada paket gratis Firebase Anda sudah habis terpakai (Limit Read harian Firebase Free Tier adalah 50.000 kali per hari). Silakan tunggu kuota otomatis di-reset oleh Google besok hari, atau upgrade Firebase Anda ke paket berbayar (Pay-As-You-Go / Blaze) agar situs dapat terus diakses tanpa jeda kuota.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* RUNNING TEXT / TICKER PREDIKSI SKOR HARIAN (Persistent on all pages, highly readable, unified single-color style) */}
               {fixtures && fixtures.length > 0 && (
                 <div className="w-full bg-[var(--card)] border border-[var(--border)] rounded-2xl p-3 mb-6 overflow-hidden flex items-center gap-3 shadow-lg shadow-black/10 select-none">
