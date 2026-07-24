@@ -78,61 +78,89 @@ export function findArticleFromPath(
   articles: Article[], 
   searchParams: URLSearchParams
 ): Article | null {
-  // Check query params fallback first
-  const qId = searchParams.get('article') || searchParams.get('id');
-  if (qId) {
-    const foundById = articles.find((a) => a.id === qId);
-    if (foundById) return foundById;
-  }
+  try {
+    // Check query params fallback first
+    const qId = searchParams.get('article') || searchParams.get('id');
+    if (qId) {
+      const foundById = articles.find((a) => a.id === qId);
+      if (foundById) return foundById;
+    }
 
-  const base = getAppBasePath();
-  let cleanPath = pathname;
-  if (base && pathname.startsWith(base)) {
-    cleanPath = pathname.substring(base.length);
-  }
+    const base = getAppBasePath();
+    let cleanPath = pathname;
+    if (base && pathname.startsWith(base)) {
+      cleanPath = pathname.substring(base.length);
+    }
 
-  // Extract slug from URL pathname e.g. /2026/07/update-skor-piala-dunia-2026-tercepat.html
-  cleanPath = cleanPath.replace(/\.html$/, '').replace(/\/$/, '');
-  const segments = cleanPath.split('/').filter(Boolean);
+    // Extract slug from URL pathname e.g. /2026/07/update-skor-piala-dunia-2026-tercepat.html
+    cleanPath = cleanPath.replace(/\.html$/, '').replace(/\/$/, '');
+    const segments = cleanPath.split('/').filter(Boolean);
 
-  if (segments.length > 0) {
-    const rawSlug = segments[segments.length - 1];
+    if (segments.length > 0) {
+      let rawLast = segments[segments.length - 1];
+      try {
+        rawLast = decodeURIComponent(rawLast);
+      } catch {
+        // Keep rawLast as is if decoding fails
+      }
+      const normalizedRawSlug = slugify(rawLast);
 
-    // Match exact slugified title, custom slug, or ID
-    const matched = articles.find((a) => {
-      const aSlug = slugify(a.title);
-      const customSlugValue = a.slug ? slugify(a.slug) : '';
-      return aSlug === rawSlug || a.id === rawSlug || (customSlugValue && customSlugValue === rawSlug);
-    });
-    if (matched) return matched;
+      // Match exact slugified title, custom slug, or ID
+      const matched = articles.find((a) => {
+        const aSlug = slugify(a.title);
+        const customSlugValue = a.slug ? slugify(a.slug) : '';
+        return (
+          aSlug === normalizedRawSlug ||
+          a.id === rawLast ||
+          a.id === normalizedRawSlug ||
+          (customSlugValue && customSlugValue === normalizedRawSlug)
+        );
+      });
+      if (matched) return matched;
 
-    // Partial match fallback
-    const partialMatch = articles.find((a) => {
-      const aSlug = slugify(a.title);
-      const customSlugValue = a.slug ? slugify(a.slug) : '';
-      return (aSlug.length > 5 && (aSlug.includes(rawSlug) || rawSlug.includes(aSlug))) ||
-             (customSlugValue && customSlugValue.length > 5 && (customSlugValue.includes(rawSlug) || rawSlug.includes(customSlugValue)));
-    });
-    if (partialMatch) return partialMatch;
+      // Partial match fallback
+      if (normalizedRawSlug.length > 3) {
+        const partialMatch = articles.find((a) => {
+          const aSlug = slugify(a.title);
+          const customSlugValue = a.slug ? slugify(a.slug) : '';
+          return (
+            (aSlug.length > 5 && (aSlug.includes(normalizedRawSlug) || normalizedRawSlug.includes(aSlug))) ||
+            (customSlugValue && customSlugValue.length > 5 && (customSlugValue.includes(normalizedRawSlug) || normalizedRawSlug.includes(customSlugValue)))
+          );
+        });
+        if (partialMatch) return partialMatch;
+      }
+    }
+  } catch (err) {
+    console.error('Error in findArticleFromPath:', err);
   }
 
   return null;
 }
 
 export function findCategoryFromPath(pathname: string, searchParams: URLSearchParams): string | null {
-  const qCat = searchParams.get('cat') || searchParams.get('kategori');
-  if (qCat) return qCat;
+  try {
+    const qCat = searchParams.get('cat') || searchParams.get('kategori');
+    if (qCat) return qCat;
 
-  const base = getAppBasePath();
-  let cleanPath = pathname;
-  if (base && pathname.startsWith(base)) {
-    cleanPath = pathname.substring(base.length);
-  }
+    const base = getAppBasePath();
+    let cleanPath = pathname;
+    if (base && pathname.startsWith(base)) {
+      cleanPath = pathname.substring(base.length);
+    }
 
-  cleanPath = cleanPath.replace(/\/$/, '');
-  if (cleanPath.startsWith('/kategori/')) {
-    const rawCat = decodeURIComponent(cleanPath.replace('/kategori/', ''));
-    return rawCat.replace(/-/g, ' ');
+    cleanPath = cleanPath.replace(/\/$/, '');
+    if (cleanPath.startsWith('/kategori/')) {
+      let rawCat = cleanPath.replace('/kategori/', '');
+      try {
+        rawCat = decodeURIComponent(rawCat);
+      } catch {
+        // Keep as is
+      }
+      return rawCat.replace(/-/g, ' ');
+    }
+  } catch (err) {
+    console.error('Error in findCategoryFromPath:', err);
   }
 
   return null;

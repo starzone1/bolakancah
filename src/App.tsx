@@ -46,6 +46,7 @@ export default function App() {
   const [isArticlesLoading, setIsArticlesLoading] = useState<boolean>(true);
   const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false);
   const [isQuotaExceeded, setIsQuotaExceeded] = useState<boolean>(false);
+  const [isNotFoundRoute, setIsNotFoundRoute] = useState<boolean>(false);
 
   // Fixtures / Predictions state initialized with fallback mock, synced via Firestore
   const [fixtures, setFixtures] = useState<Fixture[]>(mockFixtures);
@@ -276,6 +277,8 @@ export default function App() {
       const searchParams = new URLSearchParams(window.location.search);
       const pathname = window.location.pathname;
 
+      setIsNotFoundRoute(false);
+
       // 1. Check for write/editor route
       const base = getAppBasePath();
       let relativePath = pathname;
@@ -299,13 +302,36 @@ export default function App() {
         return;
       }
 
+      // Check if URL is an article route pattern
+      const isArticleRoute = relativePath.endsWith('.html') ||
+                             /^\/\d{4}\/\d{2}\//.test(relativePath) ||
+                             Boolean(searchParams.get('article') || searchParams.get('id'));
+
       // 2. Try to find article from URL path (e.g. /2026/07/judul-artikel.html or ?article=id)
       const matchedArticle = findArticleFromPath(pathname, articles, searchParams);
       if (matchedArticle) {
         setSelectedArticle(matchedArticle);
         setCurrentView('reader');
+        setIsNotFoundRoute(false);
         updateSeoMeta({ article: matchedArticle });
         return;
+      }
+
+      // If URL is an article route pattern but article is not matched yet:
+      if (isArticleRoute) {
+        if (isArticlesLoading) {
+          // Still syncing from database, wait for articles
+          setSelectedArticle(null);
+          setCurrentView('reader');
+          return;
+        } else {
+          // Database loaded but article really does not exist
+          setSelectedArticle(null);
+          setIsNotFoundRoute(true);
+          setCurrentView('reader');
+          updateSeoMeta({ category: 'Artikel Tidak Ditemukan' });
+          return;
+        }
       }
 
       // 3. Try to find category from URL path (e.g. /kategori/sepak-bola or ?cat=sepak-bola)
@@ -314,6 +340,7 @@ export default function App() {
         setSelectedArticle(null);
         setActiveCategory(matchedCat);
         setCurrentView('reader');
+        setIsNotFoundRoute(false);
         updateSeoMeta({ category: matchedCat });
         return;
       }
@@ -322,6 +349,7 @@ export default function App() {
       setSelectedArticle(null);
       setActiveCategory(null);
       setCurrentView('reader');
+      setIsNotFoundRoute(false);
       updateSeoMeta({});
     };
 
@@ -329,10 +357,11 @@ export default function App() {
 
     window.addEventListener('popstate', syncFromUrl);
     return () => window.removeEventListener('popstate', syncFromUrl);
-  }, [articles]);
+  }, [articles, isArticlesLoading]);
 
   const handleSelectCategory = (cat: string | null) => {
     setIsArticlesLoading(true);
+    setIsNotFoundRoute(false);
     setActiveCategory(cat);
     setSelectedArticle(null);
     setCurrentView('reader');
@@ -354,6 +383,7 @@ export default function App() {
 
   const handleSelectArticle = (art: Article) => {
     setIsDetailLoading(true);
+    setIsNotFoundRoute(false);
     setSelectedArticle(art);
     setCurrentView('reader');
     const cleanUrl = getArticleUrl(art);
@@ -367,6 +397,7 @@ export default function App() {
 
   const handleGoHome = () => {
     setIsArticlesLoading(true);
+    setIsNotFoundRoute(false);
     setActiveCategory(null);
     setSelectedArticle(null);
     setCurrentView('reader');
@@ -381,6 +412,7 @@ export default function App() {
   };
 
   const handleGoToWriter = () => {
+    setIsNotFoundRoute(false);
     setCurrentView('writer');
     setSelectedArticle(null);
     setActiveCategory(null);
@@ -552,7 +584,48 @@ export default function App() {
 
               <LayoutGroup id="page-route-transitions">
                 <AnimatePresence mode="wait">
-                  {selectedArticle ? (
+                  {isNotFoundRoute ? (
+                    /* ARTICLE NOT FOUND / FALLBACK HANDLER */
+                    <motion.div
+                      key="article-not-found"
+                      initial={{ opacity: 0, y: 10, scale: 0.99 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.99 }}
+                      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                      className="p-8 sm:p-12 text-center rounded-2xl bg-[var(--card)] border border-[var(--border)] shadow-xl"
+                    >
+                      <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center mb-4 shadow-lg">
+                        <i className="fas fa-exclamation-circle text-3xl animate-bounce" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-black text-white mb-2 font-display">
+                        Artikel Tidak Ditemukan atau Telah Dipindahkan
+                      </h3>
+                      <p className="text-xs sm:text-sm text-[var(--fg3)] max-w-lg mx-auto mb-6 leading-relaxed">
+                        Maaf, artikel yang Anda tuju tidak ditemukan di database KANCAH4D. Halaman mungkin telah diubah, dihapus, atau URL yang Anda tuju kurang lengkap.
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        <button
+                          onClick={handleGoHome}
+                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                          <i className="fas fa-home" />
+                          Kembali ke Beranda
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsNotFoundRoute(false);
+                            setActiveCategory(null);
+                            setSelectedArticle(null);
+                            setDisplayCount(10);
+                          }}
+                          className="px-5 py-2.5 rounded-xl bg-[var(--card2)] hover:bg-[var(--border)] text-[var(--fg)] text-xs sm:text-sm font-bold border border-[var(--border)] transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                          <i className="fas fa-newspaper" />
+                          Lihat Berita Terbaru
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : selectedArticle ? (
                     /* SINGLE ARTICLE READER VIEW */
                     <motion.div
                       key={`art-${selectedArticle.id}`}
